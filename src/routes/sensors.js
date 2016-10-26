@@ -1,6 +1,15 @@
+import db       from '../models/db';
 import express  from 'express';
+import response from '../response';
+import * as E   from '../errors';
 
-let router = express.Router();
+const resource       = 'Sensors';
+const excludedFields = ['createdAt', 'updatedAt'];
+const associations   = ['Datastreams'];
+
+// XXX [Sensors router] Implement associations #17
+
+let router = express.Router({ mergeParams: true });
 
 /**
  * Implementation of 8.3.2 "Location"
@@ -39,12 +48,105 @@ let router = express.Router();
  *      {...}
  *    }
  *    ]
- *    "@iot.nextLink":"http://example.org/v1.0/ObservedProperties?$top=5&$skip=5"
+ *    "@iot.nextLink":
+ *      "http://example.org/v1.0/ObservedProperties?$top=5&$skip=5"
  * }
  **/
 
-router.get('/', (req, res) => {
-  res.status(200).send();
+router.get('', (req, res) => {
+  db().then(models => {
+    if (req.params && req.params[0]) {
+      models.Sensors.findById(req.params[0], {
+        attributes: {
+          exclude: excludedFields
+        }
+      }).then(sensor => {
+        if (!sensor) {
+          return E.ApiError(res, 404, E.ERRNO_RESOURCE_NOT_FOUND, E.NOT_FOUND);
+        }
+        res.status(200).send(response.generate(sensor, associations));
+      });
+    } else {
+      models.Sensors.findAll({
+        attributes: {
+          exclude: excludedFields
+        }
+      }).then(sensors => {
+        res.status(200).send(response.generate(sensors, associations));
+      });
+    }
+  }).catch(() => {
+    E.ApiError(res, 500, E.ERRNO_INTERNAL_ERROR, E.INTERNAL_ERROR);
+  });
+});
+
+router.post('/', (req, res) => {
+  db().then((models) => {
+    models.Sensors.create(req.body)
+    .then(sensor => {
+      // XXX #13 Response urls should be absolute
+      res.location('/' + resource + '(' + sensor.id + ')');
+      res.status(201).send(response.generate(sensor, associations));
+    }).catch(err => {
+      const errno = err.name === E.modelErrors[E.VALIDATION_ERROR]
+                                 ? E.ERRNO_VALIDATION_ERROR
+                                 : E.ERRNO_BAD_REQUEST;
+      E.ApiError(res, 400, errno, E.BAD_REQUEST, JSON.stringify(err.errors));
+    });
+  }).catch(() => {
+    E.ApiError(res, 500, E.ERRNO_INTERNAL_ERROR, E.INTERNAL_ERROR);
+  });
+});
+
+router.patch('', (req, res) => {
+  const id = req.params && req.params[0];
+  if (!id) {
+    return E.ApiError(res, 404, E.ERRNO_RESOURCE_NOT_FOUND, E.NOT_FOUND);
+  }
+
+  db().then(models => {
+    Reflect.deleteProperty(req.body, 'id');
+    models.updateInstance('Sensors', id, req.body, excludedFields)
+    .then(sensor => {
+      res.location('/' + resource + '(' + id + ')');
+      res.status(200).json(response.generate(sensor, associations));
+    }).catch(err => {
+      switch (err.name) {
+        case E.modelErrors[E.VALIDATION_ERROR]:
+          E.ApiError(res, 400, E.ERRNO_VALIDATION_ERROR, E.BAD_REQUEST,
+                     JSON.stringify(err.errors));
+          break;
+        case E.NOT_FOUND:
+          E.ApiError(res, 404, E.ERRNO_RESOURCE_NOT_FOUND, E.NOT_FOUND,
+                     JSON.stringify(err.errors));
+          break;
+        default:
+          E.ApiError(res, 400, E.ERRNO_BAD_REQUEST, E.BAD_REQUEST,
+                     JSON.stringify(err.errors));
+      }
+    });
+  }).catch(() => {
+    E.ApiError(res, 500, E.ERRNO_INTERNAL_ERROR, E.INTERNAL_ERROR);
+  });
+});
+
+router.delete('', (req, res) => {
+  if (!req.params || !req.params[0]) {
+    return E.ApiError(res, 404, E.ERRNO_RESOURCE_NOT_FOUND, E.NOT_FOUND);
+  }
+
+  db().then(models => {
+    models.Sensors.destroy({
+      where: { id: req.params[0] }
+    }).then(count => {
+      if (!count) {
+        return E.ApiError(res, 404, E.ERRNO_RESOURCE_NOT_FOUND, E.NOT_FOUND);
+      }
+      res.status(204).send();
+    });
+  }).catch(() => {
+    E.ApiError(res, 500, E.ERRNO_INTERNAL_ERROR, E.INTERNAL_ERROR);
+  });
 });
 
 module.exports = router;
