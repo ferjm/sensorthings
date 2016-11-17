@@ -16,9 +16,7 @@ before_script:
 - npm run test
 - npm run example &
 script:
-- source ./scripts/OGC_tests/install_TE.sh
-- source ./scripts/OGC_tests/configure_TE_BASE.sh
-- source ./scripts/OGC_tests/configure_sta10_tests.sh
+- source ./scripts/OGC_tests/install_tests.sh
 - source ./scripts/OGC_tests/launch_tests.sh
 after_success:
 - npm run coverage
