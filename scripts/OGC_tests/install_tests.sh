@@ -1,10 +1,12 @@
 #!/bin/bash
 
+export COMMON_PATH=/home/travis/build/mozilla-sensorweb/sensorthings
+
 echo "Installing TE Source"
 git clone https://github.com/opengeospatial/teamengine.git repo/teamengine
 
 echo "Building TE source"
-cd /home/travis/build/mozilla-sensorweb/sensorthings/repo/teamengine
+cd $COMMON_PATH/repo/teamengine
 
 # Lets try with master
 # git checkout 4.2
@@ -22,7 +24,7 @@ export PATH=$TE_BASE:$PATH
 cd TE_BASE
 
 # Path to repo
-cp /home/travis/build/mozilla-sensorweb/sensorthings/repo/teamengine/teamengine-console/target/teamengine-console-4.10-SNAPSHOT-base.zip .
+cp $COMMON_PATH/repo/teamengine/teamengine-console/target/teamengine-console-4.10-SNAPSHOT-base.zip .
 unzip teamengine-console-4.10-SNAPSHOT-base.zip
 cd ..
 
@@ -31,7 +33,7 @@ mkdir te-install
 cd te-install
 
 # Path to repo
-cp /home/travis/build/mozilla-sensorweb/sensorthings/repo/teamengine/teamengine-console/target/teamengine-console-4.10-SNAPSHOT-bin.zip .
+cp $COMMON_PATH/repo/teamengine/teamengine-console/target/teamengine-console-4.10-SNAPSHOT-bin.zip .
 unzip teamengine-console-4.10-SNAPSHOT-bin.zip
 
 cd ..
@@ -45,13 +47,13 @@ mvn clean install
 
 cd target
 
-cp ets-sta10-0.8-SNAPSHOT-ctl.zip /home/travis/build/mozilla-sensorweb/sensorthings/TE_BASE/scripts
-cp ets-sta10-0.8-SNAPSHOT-deps.zip /home/travis/build/mozilla-sensorweb/sensorthings/TE_BASE/resources/lib
+cp ets-sta10-0.8-SNAPSHOT-ctl.zip $COMMON_PATH/TE_BASE/scripts
+cp ets-sta10-0.8-SNAPSHOT-deps.zip $COMMON_PATH/TE_BASE/resources/lib
 
-cd /home/travis/build/mozilla-sensorweb/sensorthings/TE_BASE/scripts
+cd $COMMON_PATH/TE_BASE/scripts
 unzip ets-sta10-0.8-SNAPSHOT-ctl.zip
 
-cd /home/travis/build/mozilla-sensorweb/sensorthings/TE_BASE/resources/lib
+cd $COMMON_PATH/TE_BASE/resources/lib
 unzip ets-sta10-0.8-SNAPSHOT-deps.zip
 
 cd ../../../
