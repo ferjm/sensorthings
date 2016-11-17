@@ -22,7 +22,7 @@ export PATH=$TE_BASE:$PATH
 cd TE_BASE
 
 # Path to repo
-cp /home/travis/build/mozilla-sensorweb/sensorthings/repo/teamengine/teamengine-console/target/teamengine-console-4.2-base.zip .
+cp /home/travis/build/mozilla-sensorweb/sensorthings/repo/teamengine/teamengine-console/target/teamengine-console-4.10-SNAPSHOT-base.zip .
 unzip teamengine-console-4.10-SNAPSHOT-base.zip
 cd ..
 
@@ -31,7 +31,7 @@ mkdir te-install
 cd te-install
 
 # Path to repo
-cp /home/travis/build/mozilla-sensorweb/sensorthings/repo/teamengine/teamengine-console/target/teamengine-console-4.2-bin.zip .
+cp /home/travis/build/mozilla-sensorweb/sensorthings/repo/teamengine/teamengine-console/target/teamengine-console-4.10-SNAPSHOT-bin.zip .
 unzip teamengine-console-4.10-SNAPSHOT-bin.zip
 
 cd ..
