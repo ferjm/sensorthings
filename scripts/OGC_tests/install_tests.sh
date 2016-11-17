@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export COMMON_PATH=/home/travis/build/mozilla-sensorweb/sensorthings
+COMMON_PATH=$PWD
 
 echo "Installing TE Source"
 git clone https://github.com/opengeospatial/teamengine.git repo/teamengine
@@ -8,8 +8,7 @@ git clone https://github.com/opengeospatial/teamengine.git repo/teamengine
 echo "Building TE source"
 cd $COMMON_PATH/repo/teamengine
 
-# Lets try with master
-# git checkout 4.2
+# Using master branch
 
 mvn install
 
@@ -18,12 +17,12 @@ cd ../../
 echo "Preparing TE_BASE"
 mkdir TE_BASE
 
-export TE_BASE=/home/travis/build/mozilla-sensorweb/sensorthings/TE_BASE
+export TE_BASE=$COMMON_PATH/TE_BASE
 export PATH=$TE_BASE:$PATH
 
 cd TE_BASE
 
-# Path to repo
+# Copying teamengine-console-xxxx-base.zip into TE_BASE
 cp $COMMON_PATH/repo/teamengine/teamengine-console/target/teamengine-console-4.10-SNAPSHOT-base.zip .
 unzip teamengine-console-4.10-SNAPSHOT-base.zip
 cd ..
@@ -32,14 +31,14 @@ echo "Preparing te-install"
 mkdir te-install
 cd te-install
 
-# Path to repo
+# Copying teamengine-console-xxxx-bin.zip into TE_BASE
 cp $COMMON_PATH/repo/teamengine/teamengine-console/target/teamengine-console-4.10-SNAPSHOT-bin.zip .
 unzip teamengine-console-4.10-SNAPSHOT-bin.zip
 
 cd ..
 
 echo "Downloading ets-sta10 repo"
-
+# Download tests from repo
 git clone https://github.com/opengeospatial/ets-sta10.git
 cd ets-sta10
 

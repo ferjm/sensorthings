@@ -16,6 +16,7 @@ before_script:
 - npm run test
 - npm run example &
 script:
+- source ./scripts/populateDB.sh
 - source ./scripts/OGC_tests/install_tests.sh
 - source ./scripts/OGC_tests/launch_tests.sh
 after_success:
