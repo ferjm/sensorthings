@@ -18,6 +18,7 @@ before_script:
 script:
 - source ./scripts/OGC_tests/install_tests.sh
 - source ./scripts/populateDB.sh
+- source ./scripts/preconditions.sh
 - source ./scripts/OGC_tests/launch_tests.sh
 after_success:
 - npm run coverage
