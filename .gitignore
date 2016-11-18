@@ -16,3 +16,7 @@ dist/
 # coverage data
 coverage/
 .nyc_output/
+
+# OGC test dirs
+test/TE_BASE
+test/teamengine

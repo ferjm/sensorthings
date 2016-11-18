@@ -1,41 +1,43 @@
 #!/bin/bash
 
-COMMON_PATH=$PWD
+BASE_PATH=$PWD
 
 echo "Installing TE Source"
-git clone https://github.com/opengeospatial/teamengine.git repo/teamengine
+git clone https://github.com/opengeospatial/teamengine.git test/teamengine
 
-echo "Building TE source"
-cd $COMMON_PATH/repo/teamengine
+cd $BASE_PATH/test/teamengine
 
 # Using master branch
 
+echo "Building TE source in $PWD"
 mvn install
 
-cd ../../
-
 echo "Preparing TE_BASE"
-mkdir TE_BASE
+mkdir $BASE_PATH/test/TE_BASE
 
-export TE_BASE=$COMMON_PATH/TE_BASE
+export TE_BASE=$BASE_PATH/test/TE_BASE
 export PATH=$TE_BASE:$PATH
 
-cd TE_BASE
+cd $TE_BASE
+echo "Changed dir to $PWD"
 
 # Copying teamengine-console-xxxx-base.zip into TE_BASE
-cp $COMMON_PATH/repo/teamengine/teamengine-console/target/teamengine-console-4.10-SNAPSHOT-base.zip .
+cp $BASE_PATH/test/teamengine/teamengine-console/target/teamengine-console-4.10-SNAPSHOT-base.zip .
 unzip teamengine-console-4.10-SNAPSHOT-base.zip
-cd ..
 
 echo "Preparing te-install"
-mkdir te-install
+mkdir $TE_BASE/te-install
 cd te-install
 
+echo $PWD
+
 # Copying teamengine-console-xxxx-bin.zip into TE_BASE
-cp $COMMON_PATH/repo/teamengine/teamengine-console/target/teamengine-console-4.10-SNAPSHOT-bin.zip .
+cp $BASE_PATH/test/teamengine/teamengine-console/target/teamengine-console-4.10-SNAPSHOT-bin.zip .
 unzip teamengine-console-4.10-SNAPSHOT-bin.zip
 
 cd ..
+
+echo $PWD
 
 echo "Downloading ets-sta10 repo"
 # Download tests from repo
@@ -46,13 +48,13 @@ mvn clean install
 
 cd target
 
-cp ets-sta10-0.8-SNAPSHOT-ctl.zip $COMMON_PATH/TE_BASE/scripts
-cp ets-sta10-0.8-SNAPSHOT-deps.zip $COMMON_PATH/TE_BASE/resources/lib
+cp ets-sta10-0.8-SNAPSHOT-ctl.zip $TE_BASE/scripts
+cp ets-sta10-0.8-SNAPSHOT-deps.zip $TE_BASE/resources/lib
 
-cd $COMMON_PATH/TE_BASE/scripts
+cd $TE_BASE/scripts
 unzip ets-sta10-0.8-SNAPSHOT-ctl.zip
 
-cd $COMMON_PATH/TE_BASE/resources/lib
+cd $TE_BASE/resources/lib
 unzip ets-sta10-0.8-SNAPSHOT-deps.zip
 
-cd ../../../
+cd $BASE_PATH
