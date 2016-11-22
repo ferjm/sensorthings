@@ -25,14 +25,30 @@ import { entities }  from './constants';
   */
 
   generate: (version, endpoint) => {
-    const possibleEndpoints = '(?:' + entities.join('|') + ')';
+    let singularAndPlural = [];
+    Object.keys(entities).forEach(entityName => {
+      singularAndPlural.push(entityName, entities[entityName]);
+    });
+    const possibleEndpoints = '(?:' + singularAndPlural.join('|') + ')';
     const previousEndpoints =
       '^\\/' + version + '\\/(?:' + possibleEndpoints + '\\(\\d+\\)\\/)*';
-    const finalEndpoint = endpoint ? endpoint : possibleEndpoints;
+    const endpointPlural = '(?:' + endpoint + '|' + entities[endpoint] + ')';
+    const finalEndpoint = endpoint ? endpointPlural : possibleEndpoints;
     const id = '(?:\\((\\d+)\\))?';
     const property = '(?:\\/([a-z]\\w*)(?:\\/(\\$value|\\$ref))?)?'
     const route = previousEndpoints + finalEndpoint + id + property + '$';
 
     return new RegExp(route);
   }
+ }
+
+ exports.getModelName = name => {
+    let plural;
+    Object.keys(entities).forEach(modelName => {
+      if (entities[modelName] === name) {
+        plural = modelName;
+        return;
+      }
+    });
+    return plural || name;
  }

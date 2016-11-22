@@ -11,6 +11,8 @@ import {
   hasOne
 } from '../constants';
 
+import { getModelName } from '../utils';
+
 export default version => {
   return (req, res, next) => {
     // Removes starting and trailing '/' and the version and splits the url
@@ -33,13 +35,15 @@ export default version => {
         const matched = resource && resource.match(/^(\w+)(?:\((\d+)\))?$/);
         let model;
         let id;
+        let associationName;
         if (matched) {
-          model = models[matched[1]];
+          model = models[getModelName(matched[1])];
           id = matched[2];
+          associationName = matched[1];
         } else {
           model = models[resource];
         }
-        return { model, id };
+        return { model, id, associationName };
       };
 
       const verifyAssociations = (resourcesLeft, resource,
@@ -62,11 +66,16 @@ export default version => {
         // Check that the association is possible between the two models.
         const previousModel = previousResource.model;
         const previousId = previousResource.id;
-        const { model, id } = resource;
-        const association = previousModel.associations[model.name];
+        const { model, id, associationName } = resource;
+        const association = previousModel.associations[associationName];
         if (!association) {
           return ERR.ApiError(res, 400, ERR.ERRNO_INVALID_ASSOCIATION,
                               ERR.BAD_REQUEST);
+        }
+
+        const type = association.associationType;
+        if ([hasMany, belongsToMany].indexOf(type) > -1) {
+          return verifyAssociations(resourcesLeft, resource, previousResource);
         }
 
         // Check that the association between the two entities actually exists.
@@ -82,7 +91,7 @@ export default version => {
                                       previousResource);
           }
 
-          switch (association.associationType) {
+          switch (type) {
             case hasMany:
             case belongsToMany:
               return previousEntity['has' + model.options.name.singular](id)
