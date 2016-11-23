@@ -85,16 +85,19 @@ export default version => {
                                 ERR.NOT_FOUND);
           }
 
-          // If there's no id, we don't need to check any specific association.
-          if (!id) {
-            return verifyAssociations(resourcesLeft, resource,
-                                      previousResource);
-          }
+          const name = model.options.name.singular;
 
           switch (type) {
             case hasMany:
             case belongsToMany:
-              return previousEntity['has' + model.options.name.singular](id)
+              // If there's no id, we don't need to check any specific
+              // association.
+              if (!id) {
+                return verifyAssociations(resourcesLeft, resource,
+                                          previousResource);
+              }
+
+              return previousEntity['has' + name](id)
               .then(isAssociated => {
                 if (!isAssociated) {
                   return ERR.ApiError(res, 404, ERR.ERRNO_RESOURCE_NOT_FOUND,
@@ -104,7 +107,7 @@ export default version => {
               });
             case hasOne:
             case belongsTo:
-              return previousEntity['get' + model.name]().then(entity => {
+              return previousEntity['get' + name]().then(entity => {
                 if (!entity || entity.id !== id) {
                   return ERR.ApiError(res, 404, ERR.ERRNO_RESOURCE_NOT_FOUND,
                                       ERR.NOT_FOUND);
@@ -114,11 +117,12 @@ export default version => {
               });
             default:
               return ERR.ApiError(res, 500, ERR.ERRNO_INTERNAL_ERROR,
-                                  ERR.INTERNAL_ERROR);
+                                  ERR.INTERNAL_ERROR,
+                                  'Unknown association type');
           }
-        }).catch(() => {
+        }).catch(error => {
           return ERR.ApiError(res, 500, ERR.ERRNO_INTERNAL_ERROR,
-                              ERR.INTERNAL_ERROR);
+                              ERR.INTERNAL_ERROR, error);
         });
       };
 

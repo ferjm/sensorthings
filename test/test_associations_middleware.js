@@ -35,6 +35,7 @@ const getError = (done, endpoint, code, errno, error) => {
 }
 
 db().then(models => {
+
   let noAssociations = {};
   Object.keys(entities).forEach(entity => {
     noAssociations[entity] = [];
@@ -64,9 +65,14 @@ db().then(models => {
     });
 
     describe('Valid associations but not found entity', () => {
+      let ids = {};
       beforeEach(done => {
         const promises = Object.keys(entities).map(modelName => {
-          return models[modelName].destroy({ where: {} });
+          return models[modelName].destroy({ where: {} }).then(() => {
+            return models[modelName].create(CONST[modelName + 'Entity']);
+          }).then(result => {
+            ids[modelName] = result.id;
+          });
         });
         Promise.all(promises).then(() => {
           done();
@@ -75,12 +81,13 @@ db().then(models => {
 
       Object.keys(entities).forEach(model => {
         Object.keys(models[model].associations).forEach(association => {
-          const endpoint = model + '(1)/' + association;
+          let endpoint = model + '(id)/' + association;
           switch (models[model].associations[association].associationType) {
             case 'HasMany':
             case 'BelongsToMany':
               it('GET ' + endpoint + ' should respond 200 with an empty array ',
                  done => {
+                endpoint = endpoint.replace('id', ids[model]);
                 server.get(prepath + endpoint)
                 .expect('Content-Type', /json/)
                 .expect(200)
@@ -96,19 +103,23 @@ db().then(models => {
 
             case 'HasOne':
             case 'BelongsTo':
-            default:
               it('GET ' + endpoint + ' should respond 404 errno 404 ' +
                  'RESOURCE_NOT_FOUND', done => {
+                endpoint = endpoint.replace('id', ids[model]);
                 const NOT_FOUND_ERRNO = ERRNOS[ERR.ERRNO_RESOURCE_NOT_FOUND];
                 getError(done, endpoint, 404, NOT_FOUND_ERRNO,
                          ERRORS[ERR.NOT_FOUND]);
               });
             break;
-
+            default:
+              throw new Error('Something went wrong. Invalid association');
           }
         });
       });
+
+      // Using --delay and run() allows us to build a suite that is the result
+      // of an asynchronous computation like getting the models from the db.
+      run();
     });
-    run();
   });
 });
